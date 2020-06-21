@@ -6,27 +6,62 @@ require('dotenv').config();
 
 // Application Dependencies
 const express = require('express');
+const superagent = require('superagent');
 const cors = require('cors');
 
 // Application Setup
-const PORT = process.env.PORT || 3000;
+const GEOCODE = process.env.GEOCODE_API_KEY
+const PORT = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 
+console.log('GEOCODE', GEOCODE)
+// Weather route 
+// app.get('/weather' , WeatherHandler);
+
+
 
 // Location 
+// Test test etst test test 
+
 app.get('/location', (request, response) => {
-    try{
-    console.log('tempting to get location')
+    const city = request.query.city;
+    console.log(city)
+    const url = `https://api.locationiq.com/v1/autocomplete.php?key=${GEOCODE}&q=SEARCH_STRING`
+
+    
+
+    const queryParams = {
+        // key: process.env.GEOCODE_API_KEY,
+        q: city,
+        format: 'json',
+        limit: 1,
+      };
+      superagent.get(url)
+      .query(queryParams) 
+      .then(data => {
+        console.log('data', data)
+        const geoData = data.body[0]; // first one ...
+        const location = new Location(city, geoData);
+        response.send(location);
+      })
+      .catch(() => {
+        errorHandler('So sorry, something went wrong.', request, response);
+      });
+
+
+    // console.log('tempting to get location')
     // Read in data that came from an external API
-    let data = require('./data/location.json');
+    // let data = require('./data/location.json');
     // Adapt the data to match the contract
-    let actualData = new Location(data[0]);
+    // let actualData = new Location(data[0]);
     // Send out the adapted data
-    response.status(200).json(actualData);
-    } catch (error){
-    errorHandler('sorry about that' , request , response) }
+    // response.status(200).json(actualData);
+    //  catch (error){
+    // errorHandler('sorry about that' , request , response) }
 });
+
+
 
 function Location(obj) {
     this.latitude = obj.lat;
@@ -37,15 +72,15 @@ function Location(obj) {
 // Weather 
 app.get('/weather', (request, response) => {
     try {
-        let weatherdata = require('./xdata/weather.json')
-        let allWeather = [];
-        weatherdata.data.forEach(restObject => {
-            let weather = new Weather(restObject);
-            allWeather.push(weather);
+        let weatherData = require('./data/weather.json')
+
+         const weather = weatherData.data.map(restObject => {
+            return new Weather(restObject);
+            // allWeather.push(weather);
 
         })
-        console.log(allWeather)
-        response.status(200).json(allWeather);
+        console.log('weather', weather)
+        response.status(200).json(weather);
     }catch (error){
         errorHandler('sorry about that' , request , response)
     }
