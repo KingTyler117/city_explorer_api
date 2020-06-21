@@ -49,3 +49,43 @@ Start time: 9:30 PM
 Finish time: 10:20 PM
 
 Actual time needed to complete: 55  mins 
+
+
+Lab 7 
+
+1. Number and name of feature:  
+Re factor weather  
+
+Estimate of time needed to complete: 20 mins  
+
+Start time: 2:30 PM
+
+Finish time: 2:45 PM
+
+Actual time needed to complete: 15  mins 
+
+
+
+2. Number and name of feature:  
+ Latitude and longitude
+
+Estimate of time needed to complete: 30 mins  
+
+Start time: 2:50 PM
+
+Finish time: 4:00 PM
+
+Actual time needed to complete: 1hr and 50 mins  mins 
+
+
+
+3. Number and name of feature:  
+ Weather 
+
+Estimate of time needed to complete: 50 mins  
+
+Start time: 2:50 PM
+
+Finish time: 4:00 PM
+
+Actual time needed to complete: 1hr and 50 mins  mins 
