@@ -16,7 +16,7 @@ const pg = require('pg');
 const DATABASE_URL = process.env.DATABASE_URL
 const GEOCODE = process.env.GEOCODE_API_KEY
 const weatherCode = process.env.WEATHER_API_KEY
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(cors());
 const client = new pg.Client(DATABASE_URL)

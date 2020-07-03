@@ -117,3 +117,45 @@ Start time: 8:00 PM
 Finish time: 9:25 PM
 
 Actual time needed to complete: 1hr and 25 mins 
+
+
+
+2. Number and name of feature:  
+Server
+
+Estimate of time needed to complete: hour and half 
+
+Start time: 9:30 PM
+
+Finish time: 10:30 PM
+
+Actual time needed to complete: 1hr and 25 mins 
+
+
+
+3. Number and name of feature: 
+
+Deploy 
+
+Estimate of time needed to complete: 30 mins 
+
+Start time: 10:45 PM
+
+Finish time: 11:45 PM
+
+Actual time needed to complete: 60 mins 
+
+
+Lab 9 
+
+1. Number and name of feature: 
+
+Movies 
+
+Estimate of time needed to complete: 30 mins 
+
+Start time: 10:45 PM
+
+Finish time: 11:45 PM
+
+Actual time needed to complete: 60 mins 
