@@ -89,3 +89,31 @@ Start time: 2:50 PM
 Finish time: 4:00 PM
 
 Actual time needed to complete: 1hr and 50 mins  mins 
+
+
+
+4. Number and name of feature:  
+ Trails 
+
+Estimate of time needed to complete: 50 mins  
+
+Start time: 5:30 PM
+
+Finish time: 7:45 PM
+
+Actual time needed to complete: 1hr and 40 mins  mins 
+
+
+Lab 8
+
+
+1. Number and name of feature:  
+Set up Database 
+
+Estimate of time needed to complete: hour and half 
+
+Start time: 8:00 PM
+
+Finish time: 9:25 PM
+
+Actual time needed to complete: 1hr and 25 mins 

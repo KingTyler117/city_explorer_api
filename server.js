@@ -8,62 +8,103 @@ require('dotenv').config();
 const express = require('express');
 const superagent = require('superagent');
 const cors = require('cors');
+const pg = require('pg');
+
+
 
 // Application Setup
+const DATABASE_URL = process.env.DATABASE_URL
 const GEOCODE = process.env.GEOCODE_API_KEY
+const weatherCode = process.env.WEATHER_API_KEY
 const PORT = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
+const client = new pg.Client(DATABASE_URL)
 
-console.log('GEOCODE', GEOCODE)
+// Creating SQL query 
+const SQL = 'INSERT INTO users (first_name, last_name) VALUES ($1, $2)';
+
+// Starting up Server
+client.connect()
+  .then( () => {
+    app.listen(PORT, () => {
+      console.log(`Server is up on port ${PORT}.`);
+    });
+  })
+  .catch(err => {
+    throw `PG startup error: ${err.message}`;
+  })
+
+
+
+// console.log('GEOCODE', GEOCODE)
 // Weather route 
 // app.get('/weather' , WeatherHandler);
 
 
 
 // Location 
-// Test test etst test test 
 
 app.get('/location', (request, response) => {
+  // Step 1 check database to see if city is cached, if it is there send to client 
+  // Step 2 if city is not cached, do API call
+  // Step 3 Add city to database 
     const city = request.query.city;
-    console.log(city)
-    const url = `https://api.locationiq.com/v1/autocomplete.php?key=${GEOCODE}&q=SEARCH_STRING`
+    console.log('message' , city)
+    const VALUES = [city]
+  const SQL = `SELECT * from city_table WHERE city_name=$1;`;
+  client.query(SQL, VALUES) 
+    .then(results=>{
+      if (results.rows.length === 0) {
+        console.log('city not found')
+        
+        const queryParams = {
+          key: process.env.GEOCODE_API_KEY,
+          q: city,
+          format: 'json',
+          limit: 1,
+        };
+        const url = 'https://us1.locationiq.com/v1/search.php';
 
-    
+        superagent.get(url)
+        .query(queryParams) 
+        .then(data => {
+          // console.log('data', data)
+          const geoData = data.body[0]; // first one ...
+          const location = new Location(city, geoData);
+          // console.log(location)
+          response.send(location);
+        })
+        .catch(() => {
+          errorHandler('So sorry, something went wrong.', request, response);
+        });
+  
+      }else{
+        console.log('city found', results.rows[0])
+        response.status(200).json(results);
 
-    const queryParams = {
-        // key: process.env.GEOCODE_API_KEY,
-        q: city,
-        format: 'json',
-        limit: 1,
-      };
-      superagent.get(url)
-      .query(queryParams) 
-      .then(data => {
-        console.log('data', data)
-        const geoData = data.body[0]; // first one ...
-        const location = new Location(city, geoData);
-        response.send(location);
+      } 
+      // console.log('++++++++++++++++++++++++++++++++++++++', results.rows[0])
       })
-      .catch(() => {
-        errorHandler('So sorry, something went wrong.', request, response);
-      });
-
-
-    // console.log('tempting to get location')
-    // Read in data that came from an external API
-    // let data = require('./data/location.json');
-    // Adapt the data to match the contract
-    // let actualData = new Location(data[0]);
-    // Send out the adapted data
-    // response.status(200).json(actualData);
-    //  catch (error){
-    // errorHandler('sorry about that' , request , response) }
+      .catch( error => {response.status(500).send(error)});
 });
 
 
+//     console.log('tempting to get location')
+//     // Read in data that came from an external API
+//     let data = require('./data/location.json');
+//     // Adapt the data to match the contract
+//     let actualData = new Location(data[0]);
+//     // Send out the adapted data
+//     response.status(200).json(actualData);
+//      catch (error){
+//     errorHandler('sorry about that' , request , response) }
+// });
 
-function Location(obj) {
+
+
+function Location(name, obj) {
+    this.name = name;
     this.latitude = obj.lat;
     this.longitude = obj.lon;
     this.formatted_query = obj.display_name;
@@ -71,27 +112,134 @@ function Location(obj) {
 
 // Weather 
 app.get('/weather', (request, response) => {
-    try {
-        let weatherData = require('./data/weather.json')
+    // console.log('request delivered ', request.query)
+    // try {
+        let latitude = request.query.latitude
+        let longitude = request.query.longitude
+        // console.log('latitude', latitude);
+        // console.log(request)
+       
+        const url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${weatherCode}&lat=${latitude}&lon=${longitude}&days=8`
 
-         const weather = weatherData.data.map(restObject => {
-            return new Weather(restObject);
-            // allWeather.push(weather);
+        superagent.get(url)  
+        .then(data => {
+            let forecastArray = data.body.data
+           let results = forecastArray.map(oneForecast=>{
+                 return new Weather(oneForecast) 
+                
+            })
+           response.send(results);
 
+            // Pass new forcast and date time to constructor.
+            // let newForecast = data.body.data[0].weather.description
+            // let newForecast2 = data.body.data[1].weather.description
+            // console.log('newForecast',newForecast2)
+            // let newTime = data.body.data[0].datetime
+            // console.log('newTime', newTime)
+            // console.log('newForecast',newForecast)
+            
         })
-        console.log('weather', weather)
-        response.status(200).json(weather);
-    }catch (error){
-        errorHandler('sorry about that' , request , response)
-    }
+        .catch((err)=>{
+            console.error(err)
+        });
+
+
+
+        // superagent.get(url) 
+        // .then(data => {
+        //   let jsonData = JSON.parse(data.text)
+        //   console.log(jsonData.data[0].weather.description)
+        // }) 
+
+
+
+
+
+        // console.log('weather', weather)
+        // response.status(200).json(weather);
+    // }catch (error){
+    //     errorHandler('sorry about that' , request , response)
+    // }
   });
+
+//   const queryParams = {
+//     // key: process.env.GEOCODE_API_KEY,
+//     q: city,
+//     format: 'json',
+//     limit: 1,
+//   };
+//   superagent.get(url)
+//   .query(queryParams) 
+//   .then(data => {
+//     console.log('data', data)
+//     const weatherData = data.body[0]; // first one ...
+//     const newWeather = new weather(weather, geoData);
+//     response.send(location);
+//   })
+//   .catch(() => {
+//     errorHandler('So sorry, something went wrong.', request, response);
+//   });
+
+
+
+
+
 
 
 function Weather(obj) {
     this.forecast = obj.weather.description;
     this.time = obj.datetime;
 
+
 }
+
+
+// Trails 
+app.get('/trails', handleTrails)
+
+function handleTrails(request, response) {
+    const coordinates = {
+      lat: request.query.latitude,
+      lon: request.query.longitude,
+    };
+    const API = `https://www.hikingproject.com/data/get-trails?lat=${request.query.latitude}&lon=${request.query.longitude}&key=${process.env.TRAIL_API_KEY}`;
+  
+    superagent
+      .get(API)
+      .then((dataResults) => {
+        let results = dataResults.body.trails.map((result) => {
+          return new Trail(result);
+        });
+        response.status(200).json(results);
+      })
+      .catch((err) => {
+        console.error(" wrong trail", err);
+      });
+  }
+
+
+
+  function Trail(obj) {
+    this.name = obj.name;
+    this.location = obj.location;
+    this.length = obj.length;
+    this.stars = obj.stars;
+    this.star_votes = obj.star_votes;
+    this.summary = obj.summary;
+    this.trail_url = obj.url;
+    this.conditions = obj.conditionDetails;
+    this.condition_date = obj.conditionDate.slice(0,10); 
+    this.condition_time = obj.conditionDate.slice(11,19);
+    // console.log(this.condition_time)
+    // console.log(this.condition_date)
+  }
+
+
+
+
+
+
+
 
 
 // app.get('/', (request, response) => {
@@ -174,4 +322,6 @@ function errorHandler(error, request, response) {
 
 
 //  Server is listening for the requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+// app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+
+// Test test 
