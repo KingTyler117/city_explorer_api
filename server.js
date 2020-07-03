@@ -44,45 +44,62 @@ client.connect()
 
 
 // Location 
-// Test test etst test test 
 
 app.get('/location', (request, response) => {
+  // Step 1 check database to see if city is cached, if it is there send to client 
+  // Step 2 if city is not cached, do API call
+  // Step 3 Add city to database 
     const city = request.query.city;
-    console.log(city)
-    const url = `https://api.locationiq.com/v1/autocomplete.php?key=${GEOCODE}&q=SEARCH_STRING`
+    console.log('message' , city)
+    const VALUES = [city]
+  const SQL = `SELECT * from city_table WHERE city_name=$1;`;
+  client.query(SQL, VALUES) 
+    .then(results=>{
+      if (results.rows.length === 0) {
+        console.log('city not found')
+        
+        const queryParams = {
+          key: process.env.GEOCODE_API_KEY,
+          q: city,
+          format: 'json',
+          limit: 1,
+        };
+        const url = 'https://us1.locationiq.com/v1/search.php';
 
-    
+        superagent.get(url)
+        .query(queryParams) 
+        .then(data => {
+          // console.log('data', data)
+          const geoData = data.body[0]; // first one ...
+          const location = new Location(city, geoData);
+          // console.log(location)
+          response.send(location);
+        })
+        .catch(() => {
+          errorHandler('So sorry, something went wrong.', request, response);
+        });
+  
+      }else{
+        console.log('city found', results.rows[0])
+        response.status(200).json(results);
 
-    const queryParams = {
-        // key: process.env.GEOCODE_API_KEY,
-        q: city,
-        format: 'json',
-        limit: 1,
-      };
-      superagent.get(url)
-      .query(queryParams) 
-      .then(data => {
-        // console.log('data', data)
-        const geoData = data.body[0]; // first one ...
-        const location = new Location(city, geoData);
-        console.log(location)
-        response.send(location);
+      } 
+      // console.log('++++++++++++++++++++++++++++++++++++++', results.rows[0])
       })
-      .catch(() => {
-        errorHandler('So sorry, something went wrong.', request, response);
-      });
-
-
-    // console.log('tempting to get location')
-    // Read in data that came from an external API
-    // let data = require('./data/location.json');
-    // Adapt the data to match the contract
-    // let actualData = new Location(data[0]);
-    // Send out the adapted data
-    // response.status(200).json(actualData);
-    //  catch (error){
-    // errorHandler('sorry about that' , request , response) }
+      .catch( error => {response.status(500).send(error)});
 });
+
+
+//     console.log('tempting to get location')
+//     // Read in data that came from an external API
+//     let data = require('./data/location.json');
+//     // Adapt the data to match the contract
+//     let actualData = new Location(data[0]);
+//     // Send out the adapted data
+//     response.status(200).json(actualData);
+//      catch (error){
+//     errorHandler('sorry about that' , request , response) }
+// });
 
 
 
@@ -95,11 +112,11 @@ function Location(name, obj) {
 
 // Weather 
 app.get('/weather', (request, response) => {
-    console.log('request delivered ', request.query)
+    // console.log('request delivered ', request.query)
     // try {
         let latitude = request.query.latitude
         let longitude = request.query.longitude
-        console.log('latitude', latitude);
+        // console.log('latitude', latitude);
         // console.log(request)
        
         const url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${weatherCode}&lat=${latitude}&lon=${longitude}&days=8`
@@ -213,8 +230,8 @@ function handleTrails(request, response) {
     this.conditions = obj.conditionDetails;
     this.condition_date = obj.conditionDate.slice(0,10); 
     this.condition_time = obj.conditionDate.slice(11,19);
-    console.log(this.condition_time)
-    console.log(this.condition_date)
+    // console.log(this.condition_time)
+    // console.log(this.condition_date)
   }
 
 
@@ -307,4 +324,4 @@ function errorHandler(error, request, response) {
 //  Server is listening for the requests
 // app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
-// Test test test test
+// Test test 
