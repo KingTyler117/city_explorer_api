@@ -63,4 +63,3 @@ function renderRestaurants(restaurants) {
 
 }
 
-// Tets test test test
