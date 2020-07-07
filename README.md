@@ -152,9 +152,9 @@ Lab 9
 
 Movies 
 
-Estimate of time needed to complete: 30 mins 
+Estimate of time needed to complete: hour and 50 mins 
 
-Start time: 10:45 PM
+Start time: 12:25 PM
 
 Finish time: 11:45 PM
 
