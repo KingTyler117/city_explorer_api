@@ -16,7 +16,7 @@ const pg = require('pg');
 const DATABASE_URL = process.env.DATABASE_URL
 const GEOCODE = process.env.GEOCODE_API_KEY
 const weatherCode = process.env.WEATHER_API_KEY
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 const app = express();
 app.use(cors());
 const client = new pg.Client(DATABASE_URL);
@@ -50,13 +50,13 @@ app.get('/location', (request, response) => {
   // Step 2 if city is not cached, do API call
   // Step 3 Add city to database 
   const city = request.query.city;
-  console.log('message', city)
+  // console.log('message', city)
   const VALUES = [city]
   const SQL = `SELECT * from city_table WHERE city_name=$1;`;
   client.query(SQL, VALUES)
     .then(results => {
       if (results.rows.length === 0) {
-        console.log('city not found')
+        // console.log('city not found')
 
         const queryParams = {
           key: process.env.GEOCODE_API_KEY,
@@ -239,10 +239,10 @@ function Trail(obj) {
 app.get('/movies', (request, response) => {
     const movieQuery = request.query.name;
     const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${movieQuery}`;
-console.log(url)
+// console.log(url)
     superagent.get(url).then(resultsFromSuperAgent => {
       const data = resultsFromSuperAgent.body.results;
-      console.log('movies', data)
+      // console.log('movies', data)
       const movieResults = data.map(value => new Movie(value));
       response.status(200).send(movieResults);
 
@@ -267,23 +267,32 @@ function Movie (obj) {
 
 // Yelp
 app.get('/yelp', (request, response) => {
+  // console.log(request.query)
   let queryLatitude = request.query.latitude
   let queryLongitude = request.query.longitude;
   const url = 'https://api.yelp.com/v3/businesses/search'; 
+
 
 // Pagination 
   const yelpQuery = request.query.page;
   const numPerPage = 5;
   const start = (yelpQuery -1) * numPerPage;
+  let queryParams = {
+    latitude: queryLatitude,
+    longitude: queryLongitude,
+    offset: start,
+    limit: numPerPage
+  }
 
+  
 
 superagent.get(url)
-.set('Authorization' , `Bearer ${process. envYELP_API_KEY}`)
 .query(queryParams)
+.set('Authorization' , `Bearer ${process.env.YELP_API_KEY}`)
 .then(data => {
   const restaurantArray = data.body.businesses;
   console.log(data);
-  const yelpResults = data.map(value => new Yelp(value));
+  const yelpResults = restaurantArray.map(value => new Yelp(value));
   console.log(yelpResults);
   response.status(200).send(yelpResults);
 }
@@ -386,6 +395,6 @@ function errorHandler(error, request, response) {
 
 
 //  Server is listening for the requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+// app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
-// Test test test test 
+// Test test test test test 
